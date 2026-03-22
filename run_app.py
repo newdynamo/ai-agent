@@ -49,7 +49,7 @@ if __name__ == "__main__":
     print(f"Opening browser at http://localhost:{frontend_port}")
     print("="*50 + "\n")
     
-    webbrowser.open(f"http://localhost:{frontend_port}")
+    webbrowser.open(f"http://127.0.0.1:{frontend_port}")
     
     try:
         while True:

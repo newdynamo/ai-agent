@@ -59,7 +59,7 @@ async def upload_document(file: UploadFile = File(...), db: Session = Depends(ge
         shutil.copyfileobj(file.file, buffer)
     
     try:
-        pages_content = extract_text_from_pdf(file_path)
+        pages_content = extract_text_from_pdf(file_path, original_filename=file.filename)
         engine = get_ai_engine()
         engine.add_documents(pages_content)
         
@@ -77,8 +77,6 @@ async def upload_document(file: UploadFile = File(...), db: Session = Depends(ge
         if os.path.exists(file_path):
             os.remove(file_path)
         raise HTTPException(status_code=500, detail=str(e))
-
-
 
 @app.get("/documents")
 async def list_documents(db: Session = Depends(get_db)):
@@ -105,7 +103,8 @@ async def delete_document(doc_id: str, db: Session = Depends(get_db)):
 async def chat(request: ChatRequest):
     try:
         engine = get_ai_engine()
-        answer, source_docs = engine.get_answer(request.query)
+        # Use the new async method to avoid blocking the event loop
+        answer, source_docs = await engine.get_answer_async(request.query)
         citations = []
         for doc in source_docs:
             citations.append({
@@ -114,6 +113,10 @@ async def chat(request: ChatRequest):
             })
         return {"answer": answer, "citations": citations}
     except Exception as e:
+        import traceback
+        error_msg = traceback.format_exc()
+        with open("backend_errors.log", "a") as f:
+            f.write(f"--- Chat error ---\n{error_msg}\n")
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":

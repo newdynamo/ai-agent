@@ -26,6 +26,37 @@ class AIEngine:
             persist_directory=chroma_path,
             embedding_function=self.embeddings
         )
+        
+        # Pre-initialize character/LLM components for faster response
+        self.llm = ChatGoogleGenerativeAI(model=self.llm_model, temperature=0, convert_system_message_to_human=True)
+        self.prompt_template = """
+        [STRICT INSTRUCTION]
+        You are a dedicated AI assistant. You MUST answer the question ONLY based on the provided pieces of retrieved context.
+        If the answer is NOT present in the context, you MUST explicitly state that your knowledge is limited to the uploaded documents and you don't know the answer.
+        DO NOT use any external knowledge. DO NOT imagine or hallucinate any information.
+        
+        Always include the citation at the end of each relevant sentence or at the end of the paragraph.
+        Citation format: [📄 filename, p.page_number]
+        
+        Context:
+        {context}
+        
+        Question: {question}
+        
+        Answer:
+        """
+        self.PROMPT = PromptTemplate(
+            template=self.prompt_template, input_variables=["context", "question"]
+        )
+        
+        # Initialize the chain once
+        self.qa_chain = RetrievalQA.from_chain_type(
+            llm=self.llm,
+            chain_type="stuff",
+            retriever=self.vector_store.as_retriever(search_kwargs={"k": 5}),
+            return_source_documents=True,
+            chain_type_kwargs={"prompt": self.PROMPT}
+        )
 
     def add_documents(self, pages_content):
         """
@@ -72,33 +103,15 @@ class AIEngine:
 
     def get_answer(self, query):
         """
-        Performs RAG and returns answer with citations.
+        Performs RAG and returns answer with citations (Synchronous).
         """
-        prompt_template = """
-        You are a helpful AI assistant. Use the following pieces of retrieved context to answer the question.
-        If you don't know the answer, just say that you don't know, don't try to make up an answer.
-        Always include the citation at the end of each relevant sentence or at the end of the paragraph.
-        Citation format: [📄 filename, p.page_number]
-        
-        Context:
-        {context}
-        
-        Question: {question}
-        
-        Answer:
+        result = self.qa_chain.invoke({"query": query})
+        return result["result"], result["source_documents"]
+
+    async def get_answer_async(self, query):
         """
-        
-        PROMPT = PromptTemplate(
-            template=prompt_template, input_variables=["context", "question"]
-        )
-        
-        chain = RetrievalQA.from_chain_type(
-            llm=ChatGoogleGenerativeAI(model=self.llm_model, convert_system_message_to_human=True),
-            chain_type="stuff",
-            retriever=self.vector_store.as_retriever(search_kwargs={"k": 5}),
-            return_source_documents=True,
-            chain_type_kwargs={"prompt": PROMPT}
-        )
-        
-        result = chain.invoke({"query": query})
+        Performs RAG and returns answer with citations (Asynchronous).
+        """
+        # Use ainvoke for true non-blocking async execution
+        result = await self.qa_chain.ainvoke({"query": query})
         return result["result"], result["source_documents"]

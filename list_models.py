@@ -2,7 +2,7 @@ import google.generativeai as genai
 import os
 from dotenv import load_dotenv
 
-load_dotenv(r"c:\Antigravity\AI Agent(3600-8600)\ai_assistant\.env")
+load_dotenv()
 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 
 print("Listing models...")

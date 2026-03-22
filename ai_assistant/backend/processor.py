@@ -1,13 +1,13 @@
 import fitz  # PyMuPDF
 import os
 
-def extract_text_from_pdf(file_path):
+def extract_text_from_pdf(file_path, original_filename=None):
     """
     Extracts text from a PDF file page by page.
     Returns a list of dicts: [{"text": "...", "page": 1, "filename": "..."}]
     """
     doc = fitz.open(file_path)
-    filename = os.path.basename(file_path)
+    filename = original_filename if original_filename else os.path.basename(file_path)
     pages_content = []
     
     for page_num in range(len(doc)):

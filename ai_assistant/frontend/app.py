@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 backend_port = os.getenv("PORT_BACKEND", "8600")
-BACKEND_URL = f"http://localhost:{backend_port}"
+BACKEND_URL = f"http://127.0.0.1:{backend_port}"
 
 st.set_page_config(page_title="AI Document Assistant", page_icon="📄", layout="wide")
 
