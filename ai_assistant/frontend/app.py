@@ -7,7 +7,7 @@ load_dotenv()
 backend_port = os.getenv("PORT_BACKEND", "8600")
 BACKEND_URL = f"http://127.0.0.1:{backend_port}"
 
-st.set_page_config(page_title="AI Document Assistant Pro", page_icon="ai_assistant/frontend/assets/logo.png", layout="wide")
+st.set_page_config(page_title="HYUNDAI LNG SHIPPING", page_icon="ai_assistant/frontend/assets/logo.png", layout="wide")
 
 # Initialize Session States
 if "lang" not in st.session_state:
@@ -18,7 +18,7 @@ if "theme" not in st.session_state:
 # UI Translations Dictionary
 TRANSLATIONS = {
     "ko": {
-        "title": "AI 문서 분석 비서 Pro",
+        "title": "HYUNDAI LNG SHIPPING",
         "caption": "PDF 지식 베이스에서 즉각적인 인사이트를 얻으세요.",
         "settings": "⚙️ 설정",
         "theme_label": "테마 설정",
@@ -74,7 +74,7 @@ TRANSLATIONS = {
         "lang_selector": "🌐 언어 선택"
     },
     "en": {
-        "title": "AI Document Assistant Pro",
+        "title": "HYUNDAI LNG SHIPPING",
         "caption": "Unlock insights from your PDF knowledge base instantly.",
         "settings": "⚙️ Settings",
         "theme_label": "Theme Setting",
