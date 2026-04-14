@@ -2,7 +2,7 @@ import requests
 import os
 
 BACKEND_URL = "http://localhost:8600"
-FILE_PATH = r"c:\Antigravity\AI Agent(3600-8600)\test_valid.pdf"
+FILE_PATH = r"c:\Antigravity\AI Agent(3600-8600)\03-09 EM-EM-009 15ppm BILGE ALARM MONITOR CALIBRATION 방법.pdf"
 
 def test_upload():
     print(f"Testing upload of {FILE_PATH}...")

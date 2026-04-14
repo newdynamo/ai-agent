@@ -351,72 +351,79 @@ with tab1:
     if "messages" not in st.session_state:
         st.session_state.messages = []
 
-    # Welcome Message if no chat
-    if not st.session_state.messages:
-        st.info(T["welcome"])
-        
+    # Create Columns 1:3
+    col_left, col_right = st.columns([1, 3], gap="large")
+
+    with col_left:
+        st.image("ai_assistant/frontend/assets/logo.png", use_container_width=True)
+        st.markdown("---")
         st.write(T["suggested_title"])
-        sug_cols = st.columns(3)
+        
         suggestions = [T["suggested_q1"], T["suggested_q2"], T["suggested_q3"]]
         for i, sug in enumerate(suggestions):
-            if sug_cols[i % 3].button(sug, key=f"sug_{i}"):
+            if st.button(sug, key=f"sug_left_{i}", use_container_width=True):
                 st.session_state.pending_query = sug
                 st.rerun()
 
-    # Display chat messages
-    for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
-            if "citations" in message and message["citations"]:
-                with st.expander(T["view_sources"]):
-                    for cite in message["citations"]:
-                        st.markdown(f"<span class='source-tag'>📄 {cite['filename']}</span> (p. {cite['page']})", unsafe_allow_html=True)
+    with col_right:
+        # Welcome Message if no chat
+        if not st.session_state.messages:
+            st.info(T["welcome"])
 
-    # Chat Input Handling
-    query_to_process = None
-    if "pending_query" in st.session_state:
-        query_to_process = st.session_state.pop("pending_query")
-    
-    if prompt := st.chat_input(T["chat_input"]) or query_to_process:
-        actual_query = prompt if prompt else query_to_process
+        # Display chat messages
+        for message in st.session_state.messages:
+            with st.chat_message(message["role"]):
+                st.markdown(message["content"])
+                if "citations" in message and message["citations"]:
+                    with st.expander(T["view_sources"]):
+                        for cite in message["citations"]:
+                            st.markdown(f"<span class='source-tag'>📄 {cite['filename']}</span> (p. {cite['page']})", unsafe_allow_html=True)
+
+        # Chat Input Handling (Note: st.chat_input is always fixed to bottom by default in Streamlit)
+        query_to_process = None
+        if "pending_query" in st.session_state:
+            query_to_process = st.session_state.pop("pending_query")
         
-        st.session_state.messages.append({"role": "user", "content": actual_query})
-        with st.chat_message("user"):
-            st.markdown(actual_query)
+        if prompt := st.chat_input(T["chat_input"]) or query_to_process:
+            actual_query = prompt if prompt else query_to_process
+            
+            st.session_state.messages.append({"role": "user", "content": actual_query})
+            with st.chat_message("user"):
+                st.markdown(actual_query)
 
-        with st.chat_message("assistant"):
-            message_placeholder = st.empty()
-            with st.spinner(T["analyzing"]):
-                try:
-                    response = requests.post(f"{BACKEND_URL}/chat", json={"query": actual_query})
-                    if response.status_code == 200:
-                        data = response.json()
-                        answer = data["answer"]
-                        citations = data["citations"]
-                        
-                        unique_citations = []
-                        seen = set()
-                        for c in citations:
-                            cit_key = f"{c['filename']}_{c['page']}"
-                            if cit_key not in seen:
-                                unique_citations.append(c)
-                                seen.add(cit_key)
-                        
-                        message_placeholder.markdown(answer)
-                        if unique_citations:
-                            with st.expander(T["view_sources"]):
-                                for cite in unique_citations:
-                                    st.markdown(f"<span class='source-tag'>📄 {cite['filename']}</span> (p. {cite['page']})", unsafe_allow_html=True)
-                        
-                        st.session_state.messages.append({
-                            "role": "assistant", 
-                            "content": answer, 
-                            "citations": unique_citations
-                        })
-                    else:
-                        st.error(T["ai_error"])
-                except Exception as e:
-                    st.error(f"{T['conn_error']}{e}")
+            with st.chat_message("assistant"):
+                message_placeholder = st.empty()
+                with st.spinner(T["analyzing"]):
+                    try:
+                        response = requests.post(f"{BACKEND_URL}/chat", json={"query": actual_query})
+                        if response.status_code == 200:
+                            data = response.json()
+                            answer = data["answer"]
+                            citations = data["citations"]
+                            
+                            unique_citations = []
+                            seen = set()
+                            for c in citations:
+                                cit_key = f"{c['filename']}_{c['page']}"
+                                if cit_key not in seen:
+                                    unique_citations.append(c)
+                                    seen.add(cit_key)
+                            
+                            message_placeholder.markdown(answer)
+                            if unique_citations:
+                                with st.expander(T["view_sources"]):
+                                    for cite in unique_citations:
+                                        st.markdown(f"<span class='source-tag'>📄 {cite['filename']}</span> (p. {cite['page']})", unsafe_allow_html=True)
+                            
+                            st.session_state.messages.append({
+                                "role": "assistant", 
+                                "content": answer, 
+                                "citations": unique_citations
+                            })
+                        else:
+                            st.error(T["ai_error"])
+                    except Exception as e:
+                        st.error(f"{T['conn_error']}{e}")
 
 # --- TAB 2: DOCUMENTS ---
 with tab2:

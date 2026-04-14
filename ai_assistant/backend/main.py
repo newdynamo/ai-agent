@@ -10,6 +10,11 @@ from ai_assistant.backend.ai_engine import AIEngine
 from pydantic import BaseModel
 from typing import List
 
+from dotenv import load_dotenv
+
+# Load environment variables at the top level
+load_dotenv()
+
 app = FastAPI()
 
 # CORS configuration
@@ -121,7 +126,5 @@ async def chat(request: ChatRequest):
 
 if __name__ == "__main__":
     import uvicorn
-    from dotenv import load_dotenv
-    load_dotenv()
     port = int(os.getenv("PORT_BACKEND", 8600))
     uvicorn.run(app, host="0.0.0.0", port=port)
